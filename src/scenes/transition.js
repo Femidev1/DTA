@@ -31,16 +31,16 @@ export default class Transition extends Phaser.Scene {
         this.center_height - 50,
         "wendy",
         messages[this.number - 1],
-        100
+        40
       )
       .setOrigin(0.5);
     this.add
       .bitmapText(
         this.center_width,
-        this.center_height + 50,
+        this.center_height,
         "wendy",
         "Ready player 1",
-        80
+        48
       )
       .setOrigin(0.5);
 

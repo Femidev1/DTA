@@ -114,12 +114,20 @@ showLogo() {
     Here we add the instructions to the scene.
     */
   showInstructions() {
-    this.add
+   this.instructionsText = this.add
       .bitmapText(this.center_width, 520, "wendy", "Hold to destroy", 40)
       .setOrigin(0.5)
       .setDropShadow(3, 4, 0x222222, 0.7);
 
-      
+      this.tweens.add({
+        targets: this.instructionsText,
+        duration: 400,
+        alpha: { from: 0, to: 1 },
+        repeat: -1,
+        yoyo: true, 
+      }); 
+
+
    /* this.add
       .bitmapText(this.center_width, 500, "wendy", "SPACE to shoot", 40)
       .setOrigin(0.5)
@@ -138,20 +146,13 @@ showLogo() {
     this.add
       .bitmapText(this.center_width + 30, 590, "wendy", "PELLO", 50)
       .setOrigin(0.5)
-      .setDropShadow(3, 4, 0x222222, 0.7); */
+      .setDropShadow(3, 4, 0x222222, 0.7); 
 
 
-   /* this.space = this.add
+    this.space = this.add
       .bitmapText(this.center_width, 680, "wendy", "Press SPACE to start", 60)
       .setOrigin(0.5)
-      .setDropShadow(3, 4, 0x222222, 0.7);
-    this.tweens.add({
-      targets: this.space,
-      duration: 300,
-      alpha: { from: 0, to: 1 },
-      repeat: -1,
-      yoyo: true, 
-    }); */
+      .setDropShadow(3, 4, 0x222222, 0.7); */
 
   }
 }
