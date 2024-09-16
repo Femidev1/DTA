@@ -207,10 +207,6 @@ export default class Game extends Phaser.Scene {
       }
     }
   
-  
-  
-  
-  
 
   /*
     This is the callback for the collision between two shots. We destroy both shots and we create an explosion where they meet.

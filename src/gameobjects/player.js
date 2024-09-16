@@ -2,6 +2,13 @@ import Explosion from "./explosion";
 import { LightParticle } from "./particle";
 import ShootingPatterns from "./shooting_patterns";
 
+const shootingRates = {
+  water: 200, 
+  chocolate: 200,
+  vanilla: 400, 
+  fruit: 250,
+};
+
 class Player extends Phaser.GameObjects.Sprite {
   constructor(scene, x, y, name = "player1", powerUp = "water", scale = 0.75) {
     super(scene, x, y, name);
@@ -14,150 +21,161 @@ class Player extends Phaser.GameObjects.Sprite {
     scene.physics.add.existing(this);
     this.body.setCollideWorldBounds(true);
     this.body.setAllowGravity(false);
-   // this.body.setSize(64 * scale , 64 * scale)
-   // this.body.setCircle(26 * scale);
-   this.body.setCircle(32 * scale);
-    this.body.setOffset((this.width, this.body.width) / 2, (this.height, this.body.height) / 2);
+    this.isTouching = false; // Initialize isTouching to false
+    this.body.setCircle(24);
+    this.body.setOffset((0, 0) / 2); // Adjust offset based on scaled size
     this.power = 0;
     this.blinking = false;
     this.shootingPatterns = new ShootingPatterns(this.scene, this.name);
+
+    this.updateShootingRate();
+    this.lastShotTime = 0;
     this.init();
     this.setControls();
   }
 
   /*
-    We add a shadow to the player, and we'll have to update its position with the player. Alternatively, we could have defined a Container with the player and the shadow.
-    */
+    We add a shadow to the player, and we'll have to update its position with the player.
+  */
   spawnShadow(x, y, scale) {
     this.shadow = this.scene.add
       .image(x + 10, y + 10, "player1")
       .setTint(0x000000)
       .setAlpha(0.4);
-      const shadowScale = 1;
-      this.shadow.setScale(scale * shadowScale)
-      
+    const shadowScale = 1;
+    this.shadow.setScale(scale * shadowScale);
   }
 
   /*
-    We set the animations for the player. We'll have 3 animations: one for the idle state, one for moving right, and one for moving left.
-    */
-    init() {
-      // Check if the animations already exist before creating them
-      if (!this.scene.anims.exists(this.name)) {
-        this.scene.anims.create({
-          key: this.name,
-          frames: this.scene.anims.generateFrameNumbers(this.name, {
-            start: 0,
-            end: 0,
-          }),
-          frameRate: 10,
-          repeat: -1,
-        });
-      }
-    
-      if (!this.scene.anims.exists(this.name + "right")) {
-        this.scene.anims.create({
-          key: this.name + "right",
-          frames: this.scene.anims.generateFrameNumbers(this.name, {
-            start: 1,
-            end: 1,
-          }),
-          frameRate: 10,
-          repeat: -1,
-        });
-      }
-    
-      if (!this.scene.anims.exists(this.name + "left")) {
-        this.scene.anims.create({
-          key: this.name + "left",
-          frames: this.scene.anims.generateFrameNumbers(this.name, {
-            start: 2,
-            end: 2,
-          }),
-          frameRate: 10,
-          repeat: -1,
-        });
-      }
-    
-      this.anims.play(this.name, true);
-      this.upDelta = 0;
+    We set the animations for the player.
+  */
+  init() {
+    if (!this.scene.anims.exists(this.name)) {
+      this.scene.anims.create({
+        key: this.name,
+        frames: this.scene.anims.generateFrameNumbers(this.name, {
+          start: 0,
+          end: 0,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
     }
-    
 
-  /*
-    We set the controls for the player. We'll use the cursor keys and WASD keys to move the player, and the space bar to shoot.
-    */
-  setControls() {
-    this.SPACE = this.scene.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.SPACE
-    );
-    this.cursor = this.scene.input.keyboard.createCursorKeys();
-    this.W = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-    this.A = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    this.S = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    this.D = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    if (!this.scene.anims.exists(this.name + "right")) {
+      this.scene.anims.create({
+        key: this.name + "right",
+        frames: this.scene.anims.generateFrameNumbers(this.name, {
+          start: 1,
+          end: 1,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+    }
+
+    if (!this.scene.anims.exists(this.name + "left")) {
+      this.scene.anims.create({
+        key: this.name + "left",
+        frames: this.scene.anims.generateFrameNumbers(this.name, {
+          start: 2,
+          end: 2,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+    }
+
+    this.anims.play(this.name, true);
+    this.upDelta = 0;
   }
 
   /*
-    This will be called when the player shoots. We'll play a sound, and then call the shoot method of the current shooting pattern.
-    */
+    We set the controls for the player.
+  */
+    setControls() {
+      // Clear any existing input events to avoid multiple bindings
+      this.scene.input.off('pointerdown');
+      this.scene.input.off('pointermove');
+      this.scene.input.off('pointerup');
+  
+      // Pointer down event: Start tracking movement
+      this.scene.input.on('pointerdown', (pointer) => {
+          this.isTouching = true;
+          this.pointer = pointer;
+      });
+  
+      // Pointer move event: Update the player's position
+      this.scene.input.on('pointermove', (pointer) => {
+          if (this.isTouching) {
+              // Ensure this.scene and its properties are valid
+              if (!this.scene || !this.scene.sys || !this.scene.sys.game) return;
+  
+              // Access game dimensions directly
+              const gameWidth = this.scene.sys.game.config.width;
+              const gameHeight = this.scene.sys.game.config.height;
+  
+              // Update the player's position using pointer coordinates, clamping within game bounds
+              this.x = Phaser.Math.Clamp(pointer.x, this.width / 2, gameWidth - this.width / 2);
+              this.y = Phaser.Math.Clamp(pointer.y, this.height / 2, gameHeight - this.height / 2);
+          }
+      });
+  
+      // Pointer up event: Stop tracking movement
+      this.scene.input.on('pointerup', () => {
+          this.isTouching = false;
+      });
+  }
+  
+
+  updateShootingRate() {
+    this.shootingCooldown = shootingRates[this.powerUp] || 300;
+  }
+
+  /*
+    This will be called when the player shoots.
+  */
   shoot() {
-    this.scene.playAudio("shot");
-    this.shootingPatterns.shoot(this.x, this.y, this.powerUp);
+    const currentTime = this.scene.time.now;
+
+    if (currentTime - this.lastShotTime >= this.shootingCooldown) {
+      this.scene.playAudio("shot");
+      this.shootingPatterns.shoot(this.x, this.y, this.powerUp);
+      this.lastShotTime = currentTime;
+    }
   }
 
   /*
-    This is the game loop for the player. We'll check if the player is moving, and if so, we'll play the corresponding animation. We'll also check if the player is shooting, and if so, we'll call the shoot method.
-    */
-    update(timestep, delta) {
-      if (this.death) return;
-    
-      // Handle player movement
-      if (this.cursor.left.isDown) {
-        this.x = Math.max(this.x - 7, this.body.width / 2); // Left boundary
-        this.anims.play(this.name + "left", true);
-        this.shadow.setScale(this.shadow.scale * 0.5, this.shadow.scale);
-      } else if (this.cursor.right.isDown) {
-        this.x = Math.min(this.x + 7, this.scene.sys.game.config.width - this.body.width / 2); // Right boundary
-        this.anims.play(this.name + "right", true);
-        this.shadow.setScale(this.shadow.scale * 0.5, this.shadow.scale);
-      } else {
-        this.anims.play(this.name, true);
-        this.shadow.setScale(this.shadow.scale, this.shadow.scale);
-      }
-    
-      if (this.cursor.up.isDown) {
-        this.y = Math.max(this.y - 7, this.body.height / 2); // Top boundary
-      } else if (this.cursor.down.isDown) {
-        this.y = Math.min(this.y + 7, this.scene.sys.game.config.height - this.body.height / 2); // Bottom boundary
-      }
-    
-      if (Phaser.Input.Keyboard.JustDown(this.SPACE)) {
-        this.shoot();
-      }
-    
-      // Add trail effect
-      this.scene.trailLayer.add(
-        new LightParticle(this.scene, this.x, this.y, 0xffffff, 10)
-      );
-    
-      // Update shadow position
-      this.updateShadow();
+    This is the game loop for the player.
+  */
+  update(timestep, delta) {
+    if (this.death) return;
+
+    // Automatic shooting while the screen is being touched
+    if (this.isTouching) {
+      this.shoot();
     }
-    
-    
+
+    // Add trail effect
+    this.scene.trailLayer.add(
+      new LightParticle(this.scene, this.x, this.y, 0xffffff, 10)
+    );
+
+    // Update shadow position
+    this.updateShadow();
+  }
 
   /*
     We update the shadow position to follow the player.
-    */
+  */
   updateShadow() {
-    this.shadow.x = this.x + 20;
-    this.shadow.y = this.y + 20;
+    this.shadow.x = this.x + 10;
+    this.shadow.y = this.y + 10;
   }
 
   /*
-    Every time the player destroys a foe or a shot we show the points. We'll use a bitmap text for that.
-    */
+    Every time the player destroys a foe or a shot we show the points.
+  */
   showPoints(score, color = 0xff0000) {
     let text = this.scene.add
       .bitmapText(this.x + 20, this.y - 30, "starshipped", score, 20, 0xfffd37)
@@ -171,8 +189,8 @@ class Player extends Phaser.GameObjects.Sprite {
   }
 
   /*
-    This will be called when the player dies: we'll show an explosion, shake the camera, and destroy the player.
-    */
+    This will be called when the player dies.
+  */
   dead() {
     const explosion = this.scene.add
       .circle(this.x, this.y, 10)
@@ -191,6 +209,11 @@ class Player extends Phaser.GameObjects.Sprite {
     this.shadow.destroy();
     new Explosion(this.scene, this.x, this.y, 40);
     super.destroy();
+  }
+
+  setPowerUp(newPowerUp) {
+    this.powerUp = newPowerUp;
+    this.updateShootingRate();
   }
 }
 

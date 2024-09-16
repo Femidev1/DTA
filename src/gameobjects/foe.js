@@ -32,7 +32,7 @@ class Foe extends Phaser.GameObjects.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.body.setAllowGravity(false);
-    this.body.setCircle(40);
+    this.body.setCircle(24);
     this.body.setOffset(12 * scale, 12 * scale);
     this.body.setVelocityX(velocityX);
     this.body.setVelocityY(velocityY);
