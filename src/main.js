@@ -12,8 +12,7 @@ const config = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  autoRound: false,
-  parent: "contenedor",
+  parent: "contenedor", // Make sure this matches the ID in the HTML
   physics: {
     default: "arcade",
     arcade: {
@@ -23,6 +22,5 @@ const config = {
   },
   scene: [Bootloader, Splash, Transition, Game, Outro],
 };
-
 
 const game = new Phaser.Game(config);

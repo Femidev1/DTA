@@ -47,12 +47,14 @@ export default class Game extends Phaser.Scene {
   /*
     This is how we create an infinite background. We create a tileSprite with the size of the screen and we set the origin to 0,0. Then we set the scroll factor to 0,1 so it will scroll only in the Y axis.
     */
-  addBackground() {
-    this.background = this.add
-      .tileSprite(0, 0, this.width, this.height, "stage" + this.number)
-      .setOrigin(0)
-      .setScrollFactor(0, 1);
+    addBackground() {
+      this.background = this.add
+          .tileSprite(this.center_width, this.center_height, this.width, this.height, "stage" + this.number)
+          .setOrigin(0.5, 0.5)
+          .setScrollFactor(0, 1);
   }
+  
+  
 
   /*
     This is the method that will be called from the foe generator when a wave is destroyed. We create a new power up and we add it to the power-up group.
@@ -197,13 +199,18 @@ export default class Game extends Phaser.Scene {
   /*
     This is the callback for the world bounds and we will use it to destroy elements that the game does not need anymore. We check if the element is a shot and if it is, we destroy it. We also destroy the shadow of the shot. We do this because the shadow is not a child of the shot, so it will not be destroyed automatically.
     */
-  onWorldBounds(body, t) {
-    const name = body.gameObject.name.toString();
-    if (["foeshot", "shot"].includes(name)) {
-      body.gameObject.shadow.destroy();
-      body.gameObject.destroy();
+    onWorldBounds(body, t) {
+      const name = body.gameObject.name.toString();
+      if (["foeshot", "shot"].includes(name)) {
+        body.gameObject.shadow.destroy();
+        body.gameObject.destroy();
+      }
     }
-  }
+  
+  
+  
+  
+  
 
   /*
     This is the callback for the collision between two shots. We destroy both shots and we create an explosion where they meet.
@@ -362,20 +369,37 @@ export default class Game extends Phaser.Scene {
   /*
     When the player finishes the stage, we destroy all the elements and we start the transition to the next scene.
     */
-  endScene() {
-    this.foeWaveGroup.children.entries.forEach((foe) => foe.shadow.destroy());
-    this.foeGroup.children.entries.forEach((foe) => foe.shadow.destroy());
-    this.shots.children.entries.forEach((shot) => shot.shadow.destroy());
-    this.foeShots.children.entries.forEach((shot) => shot.shadow.destroy());
-    this.time.delayedCall(
-      2000,
-      () => {
-        this.finishScene();
-      },
-      null,
-      this
-    );
+    endScene() {
+      this.foeWaveGroup.children.entries.forEach((foe) => {
+          if (foe.shadow) {
+              foe.shadow.destroy();
+          }
+      });
+      this.foeGroup.children.entries.forEach((foe) => {
+          if (foe.shadow) {
+              foe.shadow.destroy();
+          }
+      });
+      this.shots.children.entries.forEach((shot) => {
+          if (shot.shadow) {
+              shot.shadow.destroy();
+          }
+      });
+      this.foeShots.children.entries.forEach((shot) => {
+          if (shot.shadow) {
+              shot.shadow.destroy();
+          }
+      });
+      this.time.delayedCall(
+          2000,
+          () => {
+              this.finishScene();
+          },
+          null,
+          this
+      );
   }
+  
 
   /*
     This is the callback for the end of the scene. We stop all the audio, we stop the scene and we start the transition to the next scene.

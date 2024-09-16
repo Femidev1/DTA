@@ -102,20 +102,20 @@ export default class FoeGenerator {
   */
   createPath() {
     this.waves++;
-    if (this.waves === 3) this.finishScene();
-    const start = Phaser.Math.Between(100, 600);
+    if (this.waves === 10) this.finishScene();
+    const start = Phaser.Math.Between(24, 200);
     this.path = new Phaser.Curves.Path(start, 0);
 
-    this.path.lineTo(start, Phaser.Math.Between(20, 50));
+    this.path.lineTo(start, Phaser.Math.Between(10, 30));
 
     let max = 8;
-    let h = 500 / max;
+    let h = 360 / max;
 
     for (let i = 0; i < max; i++) {
       if (i % 2 === 0) {
-        this.path.lineTo(start, 50 + h * (i + 1));
+        this.path.lineTo(start, 24 + h * (i + 1));
       } else {
-        this.path.lineTo(start + 300, 50 + h * (i + 1));
+        this.path.lineTo(start + 120, 48 + h * (i + 1));
       }
     }
 
@@ -128,8 +128,8 @@ export default class FoeGenerator {
   This is the function that generates a wave of foes in an ordered formation.
   */
   orderedWave(difficulty = 5) {
-    const x = Phaser.Math.Between(64, this.scene.width - 200);
-    const y = Phaser.Math.Between(-100, 0);
+    const x = Phaser.Math.Between(24, this.scene.width - 200);
+    const y = Phaser.Math.Between(-24, 0);
     const minus = Phaser.Math.Between(-1, 1) > 0 ? 1 : -1;
 
     Array(difficulty)
@@ -142,15 +142,22 @@ export default class FoeGenerator {
   */
   wave(difficulty = 5) {
     this.createPath();
-    const x = Phaser.Math.Between(64, this.scene.width - 200);
-    const y = Phaser.Math.Between(-100, 0);
+    const x = Phaser.Math.Between(40, this.scene.width - 40); // Ensure it spawns within visible area
+    const y = Phaser.Math.Between(-50, -10); // Spawn slightly off the top of the screen
     const minus = Phaser.Math.Between(-1, 1) > 0 ? 1 : -1;
 
+    let previousX = null;
+    let previousY = null;
+
     Array(difficulty)
-      .fill()
-      .forEach((_, i) => this.addToWave(i));
+        .fill()
+        .forEach((_, i) => {
+            this.addToWave(i);
+        });
     this.activeWave = true;
-  }
+}
+
+
 
   /*
   This function generates a single tank foe.
@@ -206,34 +213,40 @@ export default class FoeGenerator {
   This function generates and ordered group of foes.
   */
   addOrder(i, x, y, minus) {
-    const offset = minus * 70;
+    // Adjust the spacing values
+    const horizontalSpacing = 40; // Change this value to increase/decrease horizontal spacing
+    const verticalOffsetMultiplier = 10; // Change this value to adjust vertical offset
+    
+    const offset = minus * verticalOffsetMultiplier; // Vertical offset for each foe
 
+    // Modify the foe's position using the new spacing values
     this.scene.foeGroup.add(
-      new Foe(this.scene, x + i * 70, i * y + offset, "foe0", 0, 300)
+      new Foe(this.scene, x + i * horizontalSpacing, y + offset, "foe0", 0, 400)
     );
-  }
+}
+
 
   /*
   This function adds a foe to the wave.
   */
   addToWave(i) {
-    const foe = new Foe(
-      this.scene,
-      Phaser.Math.Between(32, this.scene.width - 32),
-      0,
-      "foe0"
-    );
+    // Ensure the foes spawn within visible bounds
+    const x = Phaser.Math.Between(40, this.scene.width - 40); // 40 pixels margin on both sides
+    const y = Phaser.Math.Between(-50, -10); // Spawn slightly off the top
+
+    const foe = new Foe(this.scene, x, y, "foe0");
+    
     this.scene.tweens.add({
       targets: foe,
       z: 1,
       ease: "Linear",
       duration: 12000,
       repeat: -1,
-      delay: i * 100,
+      delay: i * 300,
     });
-    this;
+
     this.scene.foeWaveGroup.add(foe);
-  }
+}
 
   /*
   This function updates all foes in the scene. This could be done independently in each foe as we will see in other projects.

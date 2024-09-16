@@ -3,18 +3,21 @@ import { LightParticle } from "./particle";
 import ShootingPatterns from "./shooting_patterns";
 
 class Player extends Phaser.GameObjects.Sprite {
-  constructor(scene, x, y, name = "player1", powerUp = "water") {
+  constructor(scene, x, y, name = "player1", powerUp = "water", scale = 0.75) {
     super(scene, x, y, name);
     this.name = name;
-    this.spawnShadow(x, y);
+    this.spawnShadow(x, y, scale);
     this.powerUp = powerUp;
     this.id = Math.random();
+    this.setScale(scale);
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.body.setCollideWorldBounds(true);
     this.body.setAllowGravity(false);
-    this.body.setCircle(26);
-    this.body.setOffset(6, 9);
+   // this.body.setSize(64 * scale , 64 * scale)
+   // this.body.setCircle(26 * scale);
+   this.body.setCircle(32 * scale);
+    this.body.setOffset((this.width, this.body.width) / 2, (this.height, this.body.height) / 2);
     this.power = 0;
     this.blinking = false;
     this.shootingPatterns = new ShootingPatterns(this.scene, this.name);
@@ -25,48 +28,61 @@ class Player extends Phaser.GameObjects.Sprite {
   /*
     We add a shadow to the player, and we'll have to update its position with the player. Alternatively, we could have defined a Container with the player and the shadow.
     */
-  spawnShadow(x, y) {
+  spawnShadow(x, y, scale) {
     this.shadow = this.scene.add
-      .image(x + 20, y + 20, "player1")
+      .image(x + 10, y + 10, "player1")
       .setTint(0x000000)
       .setAlpha(0.4);
+      const shadowScale = 1;
+      this.shadow.setScale(scale * shadowScale)
+      
   }
 
   /*
     We set the animations for the player. We'll have 3 animations: one for the idle state, one for moving right, and one for moving left.
     */
-  init() {
-    this.scene.anims.create({
-      key: this.name,
-      frames: this.scene.anims.generateFrameNumbers(this.name, {
-        start: 0,
-        end: 0,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.scene.anims.create({
-      key: this.name + "right",
-      frames: this.scene.anims.generateFrameNumbers(this.name, {
-        start: 1,
-        end: 1,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.scene.anims.create({
-      key: this.name + "left",
-      frames: this.scene.anims.generateFrameNumbers(this.name, {
-        start: 2,
-        end: 2,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.play(this.name, true);
-
-    this.upDelta = 0;
-  }
+    init() {
+      // Check if the animations already exist before creating them
+      if (!this.scene.anims.exists(this.name)) {
+        this.scene.anims.create({
+          key: this.name,
+          frames: this.scene.anims.generateFrameNumbers(this.name, {
+            start: 0,
+            end: 0,
+          }),
+          frameRate: 10,
+          repeat: -1,
+        });
+      }
+    
+      if (!this.scene.anims.exists(this.name + "right")) {
+        this.scene.anims.create({
+          key: this.name + "right",
+          frames: this.scene.anims.generateFrameNumbers(this.name, {
+            start: 1,
+            end: 1,
+          }),
+          frameRate: 10,
+          repeat: -1,
+        });
+      }
+    
+      if (!this.scene.anims.exists(this.name + "left")) {
+        this.scene.anims.create({
+          key: this.name + "left",
+          frames: this.scene.anims.generateFrameNumbers(this.name, {
+            start: 2,
+            end: 2,
+          }),
+          frameRate: 10,
+          repeat: -1,
+        });
+      }
+    
+      this.anims.play(this.name, true);
+      this.upDelta = 0;
+    }
+    
 
   /*
     We set the controls for the player. We'll use the cursor keys and WASD keys to move the player, and the space bar to shoot.
@@ -93,35 +109,43 @@ class Player extends Phaser.GameObjects.Sprite {
   /*
     This is the game loop for the player. We'll check if the player is moving, and if so, we'll play the corresponding animation. We'll also check if the player is shooting, and if so, we'll call the shoot method.
     */
-  update(timestep, delta) {
-    if (this.death) return;
-    if (this.cursor.left.isDown) {
-      this.x -= 5;
-      this.anims.play(this.name + "left", true);
-      this.shadow.setScale(0.5, 1);
-    } else if (this.cursor.right.isDown) {
-      this.x += 5;
-      this.anims.play(this.name + "right", true);
-      this.shadow.setScale(0.5, 1);
-    } else {
-      this.anims.play(this.name, true);
-      this.shadow.setScale(1, 1);
+    update(timestep, delta) {
+      if (this.death) return;
+    
+      // Handle player movement
+      if (this.cursor.left.isDown) {
+        this.x = Math.max(this.x - 7, this.body.width / 2); // Left boundary
+        this.anims.play(this.name + "left", true);
+        this.shadow.setScale(this.shadow.scale * 0.5, this.shadow.scale);
+      } else if (this.cursor.right.isDown) {
+        this.x = Math.min(this.x + 7, this.scene.sys.game.config.width - this.body.width / 2); // Right boundary
+        this.anims.play(this.name + "right", true);
+        this.shadow.setScale(this.shadow.scale * 0.5, this.shadow.scale);
+      } else {
+        this.anims.play(this.name, true);
+        this.shadow.setScale(this.shadow.scale, this.shadow.scale);
+      }
+    
+      if (this.cursor.up.isDown) {
+        this.y = Math.max(this.y - 7, this.body.height / 2); // Top boundary
+      } else if (this.cursor.down.isDown) {
+        this.y = Math.min(this.y + 7, this.scene.sys.game.config.height - this.body.height / 2); // Bottom boundary
+      }
+    
+      if (Phaser.Input.Keyboard.JustDown(this.SPACE)) {
+        this.shoot();
+      }
+    
+      // Add trail effect
+      this.scene.trailLayer.add(
+        new LightParticle(this.scene, this.x, this.y, 0xffffff, 10)
+      );
+    
+      // Update shadow position
+      this.updateShadow();
     }
-
-    if (this.cursor.up.isDown) {
-      this.y -= 5;
-    } else if (this.cursor.down.isDown) {
-      this.y += 5;
-    }
-
-    if (Phaser.Input.Keyboard.JustDown(this.SPACE)) {
-      this.shoot();
-    }
-    this.scene.trailLayer.add(
-      new LightParticle(this.scene, this.x, this.y, 0xffffff, 10)
-    );
-    this.updateShadow();
-  }
+    
+    
 
   /*
     We update the shadow position to follow the player.

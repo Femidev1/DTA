@@ -9,20 +9,31 @@ const TYPES = {
 };
 
 class Foe extends Phaser.GameObjects.Sprite {
-  constructor(scene, x, y, name = "foe0", velocityX = 0, velocityY = 0) {
+  constructor(scene, x, y, name = "foe0", velocityX = 0, velocityY = 0, scale = 0.75) {
     super(scene, x, y, name);
+    
+    // Ensure x and y are within the game area
+    const gameWidth = scene.sys.game.config.width;
+    const gameHeight = scene.sys.game.config.height;
+    
     this.name = name;
     this.points = TYPES[name].points;
     this.lives = TYPES[name].lives;
     this.id = Math.random();
+    this.setScale(scale);
+
+    // Constrain the spawn position within the screen bounds
+    this.x = Phaser.Math.Clamp(x, 0, gameWidth);
+    this.y = Phaser.Math.Clamp(y, 0, gameHeight);
+    
     if (this.name !== "foe2") {
-      this.spawnShadow(x, y);
+      this.spawnShadow(this.x, this.y, scale);
     }
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.body.setAllowGravity(false);
-    this.body.setCircle(19);
-    this.body.setOffset(12, 12);
+    this.body.setCircle(40);
+    this.body.setOffset(12 * scale, 12 * scale);
     this.body.setVelocityX(velocityX);
     this.body.setVelocityY(velocityY);
     this.setData("vector", new Phaser.Math.Vector2());
@@ -30,7 +41,8 @@ class Foe extends Phaser.GameObjects.Sprite {
       this.setGuinxuShot();
     }
     this.init();
-  }
+}
+
 
   /*
     This function sets a tween to the Guinxu foe, so it moves in a zig-zag pattern.
@@ -54,10 +66,10 @@ class Foe extends Phaser.GameObjects.Sprite {
   /*
     This function spawns a shadow for each foe. We'll have to update it with the foe itself.
     */
-  spawnShadow(x, y) {
+  spawnShadow(x, y, scale) {
     this.shadow = this.scene.add
       .image(x + 20, y + 20, this.name)
-      .setScale(0.7)
+      .setScale(scale * 0.7)
       .setTint(0x000000)
       .setAlpha(0.4);
   }
@@ -70,17 +82,22 @@ class Foe extends Phaser.GameObjects.Sprite {
   /*
     This function adds an animation to the foe.
     */
-  init() {
-    this.scene.anims.create({
-      key: this.name,
-      frames: this.scene.anims.generateFrameNumbers(this.name),
-      frameRate: 10,
-      repeat: -1,
-    });
-    this.anims.play(this.name, true);
-    this.direction = -1;
-  }
-
+    init() {
+      // Check if the animation with the given key already exists before creating it
+      if (!this.scene.anims.exists(this.name)) {
+        this.scene.anims.create({
+          key: this.name,
+          frames: this.scene.anims.generateFrameNumbers(this.name),
+          frameRate: 10,
+          repeat: -1,
+        });
+      }
+    
+      // Play the animation
+      this.anims.play(this.name, true);
+      this.direction = -1;
+    }
+    
   /*
     This function is called from the foe generation. It updates the foe position, checks if it's out of bounds and also updates its shadow.
     */

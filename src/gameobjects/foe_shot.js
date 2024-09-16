@@ -1,9 +1,9 @@
 const TYPES = {
-  chocolate: { color: 0xaf8057, radius: 16, intensity: 0.4 },
-  vanila: { color: 0xfff6d5, radius: 16, intensity: 0.4 },
-  fruit: { color: 0x00ff00, radius: 16, intensity: 0.4 },
-  water: { color: 0x0000cc, radius: 16, intensity: 0.4 },
-  foe: { color: 0xfff01f, radius: 16, intensity: 0.4 },
+  chocolate: { color: 0xaf8057, radius: 12, intensity: 0.4 },
+  vanila: { color: 0xfff6d5, radius: 12, intensity: 0.4 },
+  fruit: { color: 0x00ff00, radius: 12, intensity: 0.4 },
+  water: { color: 0x0000cc, radius: 12, intensity: 0.4 },
+  foe: { color: 0xfff01f, radius: 12, intensity: 0.4 },
 };
 
 class FoeShot extends Phaser.GameObjects.PointLight {
@@ -14,7 +14,7 @@ class FoeShot extends Phaser.GameObjects.PointLight {
     type = "water",
     playerName,
     velocityX = 0,
-    velocityY = -300
+    velocityY = -400
   ) {
     const { color, radius, intensity } = TYPES[type];
     super(scene, x, y, color, radius, intensity);
