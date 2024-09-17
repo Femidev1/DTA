@@ -93,87 +93,65 @@ class Player extends Phaser.GameObjects.Sprite {
   /*
     We set the controls for the player.
   */
-    setControls() {
-      // Clear any existing input events to avoid multiple bindings
-      this.scene.input.off('pointerdown');
-      this.scene.input.off('pointermove');
-      this.scene.input.off('pointerup');
-  
-      // Pointer down event: Start tracking movement and initiate smooth transition
-      this.scene.input.on('pointerdown', (pointer) => {
-          this.isTouching = true;
-          this.pointer = pointer;
-  
-          // Move player smoothly to the pointer position
-          this.moveToPointer(pointer);
-      });
-  
-      // Pointer move event: Smoothly update the player's position
-      this.scene.input.on('pointermove', (pointer) => {
-          if (this.isTouching) {
-              this.moveToPointer(pointer);
-          }
-      });
-  
-      // Pointer up event: Stop tracking movement
-      this.scene.input.on('pointerup', () => {
-          this.isTouching = false;
-      });
+  setControls() {
+    // Clear any existing input events to avoid multiple bindings
+    this.scene.input.off('pointerdown');
+    this.scene.input.off('pointermove');
+    this.scene.input.off('pointerup');
+
+    // Pointer down event: Start tracking movement and initiate smooth transition
+    this.scene.input.on('pointerdown', (pointer) => {
+        this.isTouching = true;
+        this.pointer = pointer;
+
+        // Move player smoothly to the pointer position
+        this.moveToPointer(pointer);
+    });
+
+    // Pointer move event: Smoothly update the player's position
+    this.scene.input.on('pointermove', (pointer) => {
+        if (this.isTouching) {
+            this.moveToPointer(pointer);
+        }
+    });
+
+    // Pointer up event: Stop tracking movement
+    this.scene.input.on('pointerup', () => {
+        this.isTouching = false;
+    });
   }
-  
+
+  // Method to smoothly move the player to the pointer position with an offset
   moveToPointer(pointer) {
-      // Ensure this.scene and its properties are valid
-      if (!this.scene || !this.scene.sys || !this.scene.sys.game) return;
-  
-      // Access game dimensions directly
-      const gameWidth = this.scene.sys.game.config.width;
-      const gameHeight = this.scene.sys.game.config.height;
-  
-      // Define the offset (e.g., 50 pixels above the touch point)
-      const offsetY = 50;
-  
-      // Calculate the target position with the offset
-      const targetX = Phaser.Math.Clamp(pointer.x, this.width / 2, gameWidth - this.width / 2);
-      const targetY = Phaser.Math.Clamp(pointer.y - offsetY, this.height / 2, gameHeight - this.height / 2);
-  
-      // Move the player smoothly towards the target position
-      this.scene.tweens.add({
-          targets: this,
-          x: targetX,
-          y: targetY,
-          duration: 200, // Adjust the duration to control the speed of movement
-          ease: 'Power2'
-      });
-  }
-  
-  // Method to smoothly move the player to the pointer position
-  moveToPointer(pointer) {
-      // Ensure this.scene and its properties are valid
-      if (!this.scene || !this.scene.sys || !this.scene.sys.game) return;
-  
-      // Access game dimensions directly
-      const gameWidth = this.scene.sys.game.config.width;
-      const gameHeight = this.scene.sys.game.config.height;
-  
-      // Calculate clamped target positions
-      const targetX = Phaser.Math.Clamp(pointer.x, this.width / 2, gameWidth - this.width / 2);
-      const targetY = Phaser.Math.Clamp(pointer.y, this.height / 2, gameHeight - this.height / 2);
-  
-      // Adjust speed for smooth movement
-      const speed = 800; // Adjust speed as needed
-  
-      // Calculate the distance and duration for smooth movement
-      const distance = Phaser.Math.Distance.Between(this.x, this.y, targetX, targetY);
-      const duration = (distance / speed) * 1000; // Time in ms based on speed
-  
-      // Use tween to move the player to the target position smoothly
-      this.scene.tweens.add({
-          targets: this,
-          x: targetX,
-          y: targetY,
-          duration: duration,
-          ease: 'Linear'
-      });
+    // Ensure this.scene and its properties are valid
+    if (!this.scene || !this.scene.sys || !this.scene.sys.game) return;
+
+    // Access game dimensions directly
+    const gameWidth = this.scene.sys.game.config.width;
+    const gameHeight = this.scene.sys.game.config.height;
+
+    // Define the offset (e.g., 50 pixels above the touch point)
+    const offsetY = 24; // Adjust this to position the player above the touch point
+
+    // Calculate clamped target positions with offset
+    const targetX = Phaser.Math.Clamp(pointer.x, this.width / 2, gameWidth - this.width / 2);
+    const targetY = Phaser.Math.Clamp(pointer.y - offsetY, this.height / 2, gameHeight - this.height / 2);
+
+    // Adjust speed for smooth movement
+    const speed = 800; // Adjust speed as needed
+
+    // Calculate the distance and duration for smooth movement
+    const distance = Phaser.Math.Distance.Between(this.x, this.y, targetX, targetY);
+    const duration = (distance / speed) * 1000; // Time in ms based on speed
+
+    // Use tween to move the player to the target position smoothly
+    this.scene.tweens.add({
+        targets: this,
+        x: targetX,
+        y: targetY,
+        duration: duration,
+        ease: 'Linear'
+    });
   }
 
   updateShootingRate() {
