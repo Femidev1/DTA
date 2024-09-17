@@ -99,10 +99,21 @@ class Player extends Phaser.GameObjects.Sprite {
       this.scene.input.off('pointermove');
       this.scene.input.off('pointerup');
   
-      // Pointer down event: Start tracking movement
+      // Pointer down event: Start tracking movement and update player position immediately
       this.scene.input.on('pointerdown', (pointer) => {
           this.isTouching = true;
           this.pointer = pointer;
+  
+          // Ensure this.scene and its properties are valid
+          if (!this.scene || !this.scene.sys || !this.scene.sys.game) return;
+  
+          // Access game dimensions directly
+          const gameWidth = this.scene.sys.game.config.width;
+          const gameHeight = this.scene.sys.game.config.height;
+  
+          // Immediately update the player's position
+          this.x = Phaser.Math.Clamp(pointer.x, this.width / 2, gameWidth - this.width / 2);
+          this.y = Phaser.Math.Clamp(pointer.y, this.height / 2, gameHeight - this.height / 2);
       });
   
       // Pointer move event: Update the player's position
