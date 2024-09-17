@@ -99,36 +99,19 @@ class Player extends Phaser.GameObjects.Sprite {
       this.scene.input.off('pointermove');
       this.scene.input.off('pointerup');
   
-      // Pointer down event: Start tracking movement and update player position immediately
+      // Pointer down event: Start tracking movement and initiate smooth transition
       this.scene.input.on('pointerdown', (pointer) => {
           this.isTouching = true;
           this.pointer = pointer;
   
-          // Ensure this.scene and its properties are valid
-          if (!this.scene || !this.scene.sys || !this.scene.sys.game) return;
-  
-          // Access game dimensions directly
-          const gameWidth = this.scene.sys.game.config.width;
-          const gameHeight = this.scene.sys.game.config.height;
-  
-          // Immediately update the player's position
-          this.x = Phaser.Math.Clamp(pointer.x, this.width / 2, gameWidth - this.width / 2);
-          this.y = Phaser.Math.Clamp(pointer.y, this.height / 2, gameHeight - this.height / 2);
+          // Move player smoothly to the pointer position
+          this.moveToPointer(pointer);
       });
   
-      // Pointer move event: Update the player's position
+      // Pointer move event: Smoothly update the player's position
       this.scene.input.on('pointermove', (pointer) => {
           if (this.isTouching) {
-              // Ensure this.scene and its properties are valid
-              if (!this.scene || !this.scene.sys || !this.scene.sys.game) return;
-  
-              // Access game dimensions directly
-              const gameWidth = this.scene.sys.game.config.width;
-              const gameHeight = this.scene.sys.game.config.height;
-  
-              // Update the player's position using pointer coordinates, clamping within game bounds
-              this.x = Phaser.Math.Clamp(pointer.x, this.width / 2, gameWidth - this.width / 2);
-              this.y = Phaser.Math.Clamp(pointer.y, this.height / 2, gameHeight - this.height / 2);
+              this.moveToPointer(pointer);
           }
       });
   
@@ -138,6 +121,35 @@ class Player extends Phaser.GameObjects.Sprite {
       });
   }
   
+  // Method to smoothly move the player to the pointer position
+  moveToPointer(pointer) {
+      // Ensure this.scene and its properties are valid
+      if (!this.scene || !this.scene.sys || !this.scene.sys.game) return;
+  
+      // Access game dimensions directly
+      const gameWidth = this.scene.sys.game.config.width;
+      const gameHeight = this.scene.sys.game.config.height;
+  
+      // Calculate clamped target positions
+      const targetX = Phaser.Math.Clamp(pointer.x, this.width / 2, gameWidth - this.width / 2);
+      const targetY = Phaser.Math.Clamp(pointer.y, this.height / 2, gameHeight - this.height / 2);
+  
+      // Adjust speed for smooth movement
+      const speed = 800; // Adjust speed as needed
+  
+      // Calculate the distance and duration for smooth movement
+      const distance = Phaser.Math.Distance.Between(this.x, this.y, targetX, targetY);
+      const duration = (distance / speed) * 1000; // Time in ms based on speed
+  
+      // Use tween to move the player to the target position smoothly
+      this.scene.tweens.add({
+          targets: this,
+          x: targetX,
+          y: targetY,
+          duration: duration,
+          ease: 'Linear'
+      });
+  }
 
   updateShootingRate() {
     this.shootingCooldown = shootingRates[this.powerUp] || 300;
