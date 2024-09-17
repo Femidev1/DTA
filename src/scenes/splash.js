@@ -14,13 +14,15 @@ export default class Splash extends Phaser.Scene {
     this.showLogo();
     this.registry.set("currentPowerUp", 0);
     this.time.delayedCall(1000, () => this.showInstructions(), null, this);
-
+/*
     this.input.keyboard.on(
       "keydown-SPACE",
       () => this.transitionToChange(),
       this
     );
+*/
 
+this.input.on('pointerdown', () => this.transitionToChange(), this);
     this.playMusic();
   }
 
