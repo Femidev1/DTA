@@ -121,6 +121,31 @@ class Player extends Phaser.GameObjects.Sprite {
       });
   }
   
+  moveToPointer(pointer) {
+      // Ensure this.scene and its properties are valid
+      if (!this.scene || !this.scene.sys || !this.scene.sys.game) return;
+  
+      // Access game dimensions directly
+      const gameWidth = this.scene.sys.game.config.width;
+      const gameHeight = this.scene.sys.game.config.height;
+  
+      // Define the offset (e.g., 50 pixels above the touch point)
+      const offsetY = 50;
+  
+      // Calculate the target position with the offset
+      const targetX = Phaser.Math.Clamp(pointer.x, this.width / 2, gameWidth - this.width / 2);
+      const targetY = Phaser.Math.Clamp(pointer.y - offsetY, this.height / 2, gameHeight - this.height / 2);
+  
+      // Move the player smoothly towards the target position
+      this.scene.tweens.add({
+          targets: this,
+          x: targetX,
+          y: targetY,
+          duration: 200, // Adjust the duration to control the speed of movement
+          ease: 'Power2'
+      });
+  }
+  
   // Method to smoothly move the player to the pointer position
   moveToPointer(pointer) {
       // Ensure this.scene and its properties are valid
