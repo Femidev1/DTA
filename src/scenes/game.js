@@ -302,18 +302,28 @@ export default class Game extends Phaser.Scene {
   /*
     This is the callback when the player picks a powerup. We update the power-up of the player and we destroy the power-up. We also create a tween to make the player blink.
     */
-  pickPowerUp(player, powerUp) {
-    this.playAudio("stageclear1");
-    this.updatePowerUp(player, powerUp);
-    this.tweens.add({
-      targets: player,
-      duration: 200,
-      alpha: { from: 0.5, to: 1 },
-      scale: { from: 1.4, to: 1 },
-      repeat: 3,
-    });
-    powerUp.destroy();
+    pickPowerUp(player, powerUp) {
+      this.playAudio("stageclear1");
+      this.updatePowerUp(player, powerUp);
+  
+      // Tween for the player (optional visual effect)
+      this.tweens.add({
+          targets: player,
+          duration: 200,
+          alpha: { from: 0.5, to: 1 },
+          scale: { from: 1.2, to: 0.75 }, // Optional scaling effect for the player
+          repeat: 3,
+      });
+  
+      // Destroy the power-up's shadow
+      if (powerUp.shadow) {
+          powerUp.shadow.destroy();
+      }
+  
+      // Destroy the power-up
+      powerUp.destroy();
   }
+  
 
   /*
     This adds a player to the game. We create a tween to make the player blink and then we create a new player.
