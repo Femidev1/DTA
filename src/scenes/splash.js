@@ -44,14 +44,14 @@ this.input.on('pointerdown', () => this.transitionToChange(), this);
   /*
     We add this effect to change to another screen:
     */
-  transitionToChange() {
-    new SceneEffect(this).simpleClose(this.startGame.bind(this));
+    transitionToChange() {
+      this.startGame();
   }
+  
 
   startGame() {
     if (this.theme) this.theme.stop();
-    this.scene.start("transition", {
-      next: "game",
+    this.scene.start("game", {
       name: "STAGE",
       number: 1,
       time: 30,

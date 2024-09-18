@@ -89,20 +89,20 @@ export default class FoeGenerator {
   /*
   This is called when the scene is finished and it takes care of destroying the generation events.
   */
-  finishScene() {
+ /*  finishScene() {
     this.generateEvent1.destroy();
     this.generateEvent2.destroy();
     if (this.scene.number > 1) this.generateEvent3.destroy();
     if (this.scene.number > 2) this.generateEvent4.destroy();
     this.scene.endScene();
-  }
+  } */
 
   /*
   This is the function that creates the path for the foes to follow in formation.
   */
   createPath() {
     this.waves++;
-    if (this.waves === 10) this.finishScene();
+   // if (this.waves === 2) this.finishScene();
     const start = Phaser.Math.Between(24, 200);
     this.path = new Phaser.Curves.Path(start, 0);
 

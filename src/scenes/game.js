@@ -71,34 +71,41 @@ export default class Game extends Phaser.Scene {
   addScores() {
     this.scores = {
       player1: {},
-      player2: {},
+     // player2: {},
     };
 
     this.scores["player1"]["scoreText"] = this.add
       .bitmapText(
-        150,
-        16,
+        10,
+        10,
         "wendy",
-        String(this.registry.get("score_player1")).padStart(6, "0"),
-        50
+        String(this.registry.get("score_player1")).padStart(8, "0"),
+        40
       )
-      .setOrigin(0.5)
+      .setOrigin(0, 0)
       .setScrollFactor(0);
-    this.scores["player2"]["scoreText"] = this.add
+   /* this.scores["player2"]["scoreText"] = this.add
       .bitmapText(this.width - 150, 16, "wendy", "0".padStart(6, "0"), 50)
       .setOrigin(0.5)
-      .setScrollFactor(0);
+      .setScrollFactor(0); */
   }
 
   /*
     This adds the players to the scene. We create a group of players but in this particular implementation, we just add one player.
     */
-  addPlayers() {
-    this.trailLayer = this.add.layer();
-    this.players = this.add.group();
-    this.player = new Player(this, this.center_width, this.center_height);
-    this.players.add(this.player);
+    addPlayers() {
+      this.trailLayer = this.add.layer();
+      this.players = this.add.group();
+  
+      // Use last known player position or default to center if not available
+      let spawnX = this.lastPlayerX !== undefined ? this.lastPlayerX : this.center_width;
+      let spawnY = this.lastPlayerY !== undefined ? this.lastPlayerY : this.center_height;
+  
+      // Spawn the player at the saved position
+      this.player = new Player(this, spawnX, spawnY);
+      this.players.add(this.player);
   }
+  
 
   /*
     Next, we have some functions to add other groups for the game elements.
@@ -280,6 +287,9 @@ export default class Game extends Phaser.Scene {
   hitPlayer(player, shot) {
     if (player.blinking) return;
 
+    this.lastPlayerX = player.x;
+    this.lastPlayerY = player.y;
+
     this.players.remove(this.player);
     player.dead();
     this.playAudio("explosion");
@@ -328,20 +338,26 @@ export default class Game extends Phaser.Scene {
   /*
     This adds a player to the game. We create a tween to make the player blink and then we create a new player.
     */
-  respawnPlayer() {
-    this.player = new Player(this, this.center_width, this.center_height);
-    this.player.blinking = true;
-    this.players.add(this.player);
-    this.tweens.add({
-      targets: this.player,
-      duration: 100,
-      alpha: { from: 0, to: 1 },
-      repeat: 10,
-      onComplete: () => {
-        this.player.blinking = false;
-      },
-    });
+    respawnPlayer() {
+      // Use last known player position or default to center if not available
+      let spawnX = this.lastPlayerX !== undefined ? this.lastPlayerX : this.center_width;
+      let spawnY = this.lastPlayerY !== undefined ? this.lastPlayerY : this.center_height;
+  
+      this.player = new Player(this, spawnX, spawnY);
+      this.player.blinking = true;
+      this.players.add(this.player);
+  
+      this.tweens.add({
+          targets: this.player,
+          duration: 100,
+          alpha: { from: 0, to: 1 },
+          repeat: 10,
+          onComplete: () => {
+              this.player.blinking = false;
+          },
+      });
   }
+  
 
   /*
     Here we load all the audio, and we add them to the `this.audios` object. Later we can play them with the `playAudio` method.
@@ -413,7 +429,7 @@ export default class Game extends Phaser.Scene {
   finishScene() {
     this.game.sound.stopAll();
     this.scene.stop("game");
-    const scene = this.number < 5 ? "transition" : "outro";
+    const scene = this.number < 5 ? "game" : "outro";
     this.scene.start(scene, {
       next: "game",
       name: "STAGE",
