@@ -23,7 +23,7 @@ class Player extends Phaser.GameObjects.Sprite {
     this.body.setAllowGravity(false);
     this.isTouching = false; // Initialize isTouching to false
     this.body.setCircle(24);
-    this.body.setOffset((0, 0) / 2); // Adjust offset based on scaled size
+    this.body.setOffset((0, 0)); // Adjust offset based on scaled size
     this.power = 0;
     this.blinking = false;
     this.shootingPatterns = new ShootingPatterns(this.scene, this.name);
@@ -110,10 +110,21 @@ class Player extends Phaser.GameObjects.Sprite {
 
     // Pointer move event: Smoothly update the player's position
     this.scene.input.on('pointermove', (pointer) => {
-        if (this.isTouching) {
-            this.moveToPointer(pointer);
-        }
-    });
+      if (this.isTouching) {
+          // Compare pointer position with the player's current x position
+          if (pointer.x < this.x) {
+              this.anims.play(this.name + "left", true);
+          } else if (pointer.x > this.x) {
+              this.anims.play(this.name + "right", true);
+          } else {
+              this.anims.play(this.name, true); // Idle animation
+          }
+  
+          // Move the player smoothly to the pointer position
+          this.moveToPointer(pointer);
+      }
+  });
+  
 
     // Pointer up event: Stop tracking movement
     this.scene.input.on('pointerup', () => {
