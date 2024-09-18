@@ -3,9 +3,9 @@ import { LightParticle } from "./particle";
 import ShootingPatterns from "./shooting_patterns";
 
 const shootingRates = {
-  water: 200, 
+  water: 200,
   chocolate: 200,
-  vanilla: 400, 
+  vanilla: 400,
   fruit: 250,
 };
 
@@ -23,13 +23,14 @@ class Player extends Phaser.GameObjects.Sprite {
     this.body.setAllowGravity(false);
     this.isTouching = false; // Initialize isTouching to false
     this.body.setCircle(24);
-    this.body.setOffset((0, 0)); // Adjust offset based on scaled size
+    this.body.setOffset(0, 0); // Adjust offset based on scaled size
     this.power = 0;
     this.blinking = false;
     this.shootingPatterns = new ShootingPatterns(this.scene, this.name);
 
     this.updateShootingRate();
     this.lastShotTime = 0;
+    this.currentDirection = 'idle'; // Track current direction for animations
     this.init();
     this.setControls();
   }
@@ -101,38 +102,38 @@ class Player extends Phaser.GameObjects.Sprite {
 
     // Pointer down event: Start tracking movement and initiate smooth transition
     this.scene.input.on('pointerdown', (pointer) => {
-        this.isTouching = true;
-        this.pointer = pointer;
+      this.isTouching = true;
+      this.pointer = pointer;
 
-        // Move player smoothly to the pointer position
-        this.moveToPointer(pointer);
+      // Move player smoothly to the pointer position
+      this.moveToPointer(pointer);
     });
 
     // Pointer move event: Smoothly update the player's position
     this.scene.input.on('pointermove', (pointer) => {
       if (this.isTouching) {
-          // Compare pointer position with the player's current x position
-          if (pointer.x < this.x) {
-              this.anims.play(this.name + "left", true);
-          } else if (pointer.x > this.x) {
-              this.anims.play(this.name + "right", true);
-          } else {
-              this.anims.play(this.name, true); // Idle animation
-          }
-  
-          // Move the player smoothly to the pointer position
-          this.moveToPointer(pointer);
+        const previousX = this.x;
+        this.moveToPointer(pointer);
+        const currentX = this.x;
+
+        if (currentX < previousX) {
+          this.playAnimation("left");
+        } else if (currentX > previousX) {
+          this.playAnimation("right");
+        }
       }
-  });
-  
+    });
 
     // Pointer up event: Stop tracking movement
     this.scene.input.on('pointerup', () => {
-        this.isTouching = false;
+      this.isTouching = false;
+      this.playAnimation("idle");
     });
   }
 
-  // Method to smoothly move the player to the pointer position with an offset
+  /*
+    Method to smoothly move the player to the pointer position with an offset
+  */
   moveToPointer(pointer) {
     // Ensure this.scene and its properties are valid
     if (!this.scene || !this.scene.sys || !this.scene.sys.game) return;
@@ -157,12 +158,29 @@ class Player extends Phaser.GameObjects.Sprite {
 
     // Use tween to move the player to the target position smoothly
     this.scene.tweens.add({
-        targets: this,
-        x: targetX,
-        y: targetY,
-        duration: duration,
-        ease: 'Linear'
+      targets: this,
+      x: targetX,
+      y: targetY,
+      duration: duration,
+      ease: 'Linear',
     });
+  }
+
+  /*
+    Plays the appropriate animation based on the action
+  */
+  playAnimation(action) {
+    if (this.currentDirection === action) return; // Skip if already playing this animation
+
+    if (action === "left") {
+      this.anims.play(this.name + "left", true);
+    } else if (action === "right") {
+      this.anims.play(this.name + "right", true);
+    } else {
+      this.anims.play(this.name, true);
+    }
+
+    this.currentDirection = action; // Update current direction
   }
 
   updateShootingRate() {
