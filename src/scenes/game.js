@@ -97,14 +97,14 @@ export default class Game extends Phaser.Scene {
       this.trailLayer = this.add.layer();
       this.players = this.add.group();
   
-      // Use last known player position or default to center if not available
-      let spawnX = this.lastPlayerX !== undefined ? this.lastPlayerX : this.center_width;
-      let spawnY = this.lastPlayerY !== undefined ? this.lastPlayerY : this.center_height;
+      // Spawn the player near the bottom of the screen
+      let spawnX = this.center_width; // Center horizontally
+      let spawnY = this.height - 100; // 100 pixels from the bottom
   
-      // Spawn the player at the saved position
       this.player = new Player(this, spawnX, spawnY);
       this.players.add(this.player);
   }
+  
   
 
   /*
@@ -287,16 +287,21 @@ export default class Game extends Phaser.Scene {
   hitPlayer(player, shot) {
     if (player.blinking) return;
 
+    // Save the player's current position
     this.lastPlayerX = player.x;
     this.lastPlayerY = player.y;
 
+    console.log('Player hit at:', this.lastPlayerX, this.lastPlayerY); // Debugging
+
+    // Remove player and handle hit
     this.players.remove(this.player);
     player.dead();
     this.playAudio("explosion");
     shot.shadow.destroy();
     shot.destroy();
     this.time.delayedCall(1000, () => this.respawnPlayer(), null, this);
-  }
+}
+
 
   /*
     This one is called when a player crashes with a foe. Unless the player is blinking (because it just started), we destroy the player, and the foe and also at the end we respawn the player.
@@ -339,9 +344,9 @@ export default class Game extends Phaser.Scene {
     This adds a player to the game. We create a tween to make the player blink and then we create a new player.
     */
     respawnPlayer() {
-      // Use last known player position or default to center if not available
-      let spawnX = this.lastPlayerX !== undefined ? this.lastPlayerX : this.center_width;
-      let spawnY = this.lastPlayerY !== undefined ? this.lastPlayerY : this.center_height;
+      // Spawn the player near the bottom of the screen
+      let spawnX = this.center_width; // Center horizontally
+      let spawnY = this.height - 100; // 100 pixels from the bottom
   
       this.player = new Player(this, spawnX, spawnY);
       this.player.blinking = true;
@@ -357,6 +362,7 @@ export default class Game extends Phaser.Scene {
           },
       });
   }
+  
   
 
   /*

@@ -1,4 +1,7 @@
 import SceneEffect from "../gameobjects/scene_effect";
+import { LightParticle } from "../gameobjects/particle";
+
+
 
 export default class Splash extends Phaser.Scene {
   constructor() {
@@ -14,6 +17,7 @@ export default class Splash extends Phaser.Scene {
     this.showLogo();
     this.registry.set("currentPowerUp", 0);
     this.time.delayedCall(1000, () => this.showInstructions(), null, this);
+    this.addPlayerToSplash();
 /*
     this.input.keyboard.on(
       "keydown-SPACE",
@@ -35,6 +39,46 @@ this.input.on('pointerdown', () => this.transitionToChange(), this);
       .setOrigin(0)
       .setScrollFactor(0, 1);
   }
+
+  addPlayerToSplash() {
+    // Spawn the player near the bottom of the screen, same as in the game
+    let spawnX = this.center_width; // Center horizontally
+    let spawnY = this.height - 100; // 100 pixels from the bottom
+
+    // Create the player sprite
+    this.splashPlayer = this.add.sprite(spawnX, spawnY, 'player1'); // Replace 'player1' with the correct sprite key
+    this.splashPlayer.setScale(0.75); // Adjust scale if needed
+    this.splashPlayer.setDepth(1); 
+/*
+    this.tweens.add({
+      targets: this.splashPlayer,
+      alpha: { from: 1, to: 0.75 }, // Blink between fully visible and half-transparent
+      duration: 500, // Duration of one blink cycle in milliseconds
+      yoyo: true, // Make the tween go back to the start value
+      repeat: -1, // Repeat indefinitely
+      ease: 'Sine.easeInOut' // Use a smooth easing function
+  });
+*/
+    this.createTrailEffect();
+}
+
+createTrailEffect() {
+  // Create a layer for the trail particles (if not already created)
+  this.trailLayer = this.add.layer();
+
+  // Set up an event to create the light particles at intervals
+  this.time.addEvent({
+      delay: 50, // Frequency of trail creation
+      callback: () => {
+          // Create a new light particle at the player's current position
+          this.trailLayer.add(new LightParticle(this, this.splashPlayer.x, this.splashPlayer.y, 0xffffff, 10));
+      },
+      callbackScope: this,
+      loop: true
+  });
+}
+
+
 
   update() {
     this.background.tilePositionY -= 2;
@@ -117,7 +161,7 @@ showLogo() {
     */
   showInstructions() {
    this.instructionsText = this.add
-      .bitmapText(this.center_width, 520, "wendy", "Hold to destroy", 40)
+      .bitmapText(this.center_width, 600, "wendy", "Hold to destroy", 40)
       .setOrigin(0.5)
       .setDropShadow(3, 4, 0x222222, 0.7);
 
