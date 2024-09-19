@@ -7,6 +7,8 @@ const shootingRates = {
   chocolate: 200,
   vanilla: 400,
   fruit: 250,
+  spreadShot: 100, 
+  rapidFire: 150,
 };
 
 class Player extends Phaser.GameObjects.Sprite {

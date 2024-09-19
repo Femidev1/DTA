@@ -124,7 +124,7 @@ export default class Game extends Phaser.Scene {
   }
 
   addPowerUps() {
-    this.available = ["fruit", "vanila", "chocolate"];
+    this.available = ["fruit", "vanila", "chocolate", "spreadShot", "rapidFire"];
     this.powerUps = this.add.group();
   }
 

@@ -9,6 +9,8 @@ export default class ShootingPatterns {
       fruit: this.tri.bind(this),
       vanila: this.quintus.bind(this),
       chocolate: this.massacre.bind(this),
+      spreadShot: this.spreadShot.bind(this), 
+      rapidFire: this.rapidFire.bind(this),
     };
   }
 
@@ -54,4 +56,19 @@ export default class ShootingPatterns {
     this.scene.shots.add(new Shot(this.scene, x, y, powerUp, this.name, 30));
     this.scene.shots.add(new Shot(this.scene, x, y, powerUp, this.name, 60));
   }
+
+  spreadShot(x, y, powerUp) {
+    const angles = [-30, -15, 0, 15, 30]; // Spread angles
+    angles.forEach(angle => {
+      this.scene.shots.add(new Shot(this.scene, x, y, powerUp, this.name, angle));
+    });
+  }
+
+  rapidFire(x, y, powerUp) {
+    this.scene.shots.add(new Shot(this.scene, x, y, powerUp, this.name));
+    this.scene.time.delayedCall(100, () => {
+      this.scene.shots.add(new Shot(this.scene, x, y, powerUp, this.name));
+    });
+  }
+  
 }

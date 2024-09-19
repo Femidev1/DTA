@@ -4,6 +4,8 @@ const TYPES = {
   fruit: { color: 0xffffff, radius: 12, intensity: 0.4 },
   water: { color: 0xffffff, radius: 12, intensity: 0.4 },
   foe: { color: 0x00ff00, radius: 12, intensity: 0.4 },
+  spreadShot: { color: 0x00ffff, radius: 8, intensity: 0.4 },
+  rapidFire: { color: 0xf0ff00, radius: 12, intensity: 0.4 },
 };
 
 class Shot extends Phaser.GameObjects.PointLight {
