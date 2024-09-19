@@ -27,6 +27,7 @@ class Player extends Phaser.GameObjects.Sprite {
     this.power = 0;
     this.blinking = false;
     this.shootingPatterns = new ShootingPatterns(this.scene, this.name);
+    this.setDepth(1);
 
     this.updateShootingRate();
     this.lastShotTime = 0;
@@ -192,6 +193,7 @@ class Player extends Phaser.GameObjects.Sprite {
   */
   shoot() {
     const currentTime = this.scene.time.now;
+   
 
     if (currentTime - this.lastShotTime >= this.shootingCooldown) {
       this.scene.playAudio("shot");

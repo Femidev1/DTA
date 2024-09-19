@@ -2,9 +2,11 @@ import FoeShot from "./foe_shot";
 import Explosion from "./explosion";
 
 const TYPES = {
-  foe0: { points: 400, lives: 1 },
-  foe1: { points: 500, lives: 3 },
-  foe2: { points: 800, lives: 2 },
+  foe0: { points: 50, lives: 1 },
+  foe1: { points: 150, lives: 3 },
+  foe2: { points: 100, lives: 2 },
+  foe3: { points: 100, lives: 1 },
+  foe4: { points: 100, lives: 1 },
   guinxu: { points: 10000, lives: 20 },
 };
 

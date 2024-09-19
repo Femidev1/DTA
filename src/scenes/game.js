@@ -79,7 +79,7 @@ export default class Game extends Phaser.Scene {
         10,
         10,
         "wendy",
-        String(this.registry.get("score_player1")).padStart(8, "0"),
+        String(this.registry.get("score_player1")).padStart(6, "0"),
         40
       )
       .setOrigin(0, 0)
@@ -120,6 +120,7 @@ export default class Game extends Phaser.Scene {
     this.foeWaveGroup = this.add.group();
     this.foeShots = this.add.group();
     this.foes = new FoeGenerator(this);
+    this.foeShotsGroup = this.physics.add.group();
   }
 
   addPowerUps() {

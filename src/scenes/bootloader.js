@@ -109,6 +109,14 @@ export default class Bootloader extends Phaser.Scene {
       frameWidth: 32,
       frameHeight: 32,
     });
+    this.load.spritesheet("foe3", "assets/images/foe3.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+    this.load.spritesheet("foe4", "assets/images/foe4.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
     this.load.spritesheet("guinxu", "assets/images/guinxu.png", {
       frameWidth: 128,
       frameHeight: 144,

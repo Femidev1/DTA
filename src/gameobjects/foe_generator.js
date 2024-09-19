@@ -1,4 +1,6 @@
 import Foe from "./foe";
+import FoeShot from './foe_shot'; // Adjust the path if necessary
+
 
 export default class FoeGenerator {
   constructor(scene) {
@@ -12,38 +14,110 @@ export default class FoeGenerator {
   /*
     This is the main function to generate foes. Depending on the scene number, it will generate different foes.
     */
+    generate() {
+      // Track the difficulty level using a timer
+      this.difficultyLevel = 1;
+      
+      // Increase difficulty over time
+      this.scene.time.addEvent({
+          delay: 10000, // Increase difficulty every 20 seconds
+          callback: () => this.increaseDifficulty(),
+          callbackScope: this,
+          loop: true,
+      });
+  
+      // Start spawning simple enemies
+      this.startEnemyGeneration();
+  }
   generate() {
+    // Check if it's scene 4 to spawn guinxu
     if (this.scene.number === 4) {
-      this.scene.time.delayedCall(2000, () => this.releaseGuinxu(), null, this);
+        this.scene.time.delayedCall(2000, () => this.releaseGuinxu(), null, this);
     } else {
-      this.generateEvent1 = this.scene.time.addEvent({
-        delay: 7000,
-        callback: () => this.orderedWave(),
-        callbackScope: this,
-        loop: true,
-      });
-      this.generateEvent2 = this.scene.time.addEvent({
-        delay: 15000,
-        callback: () => this.wave(),
-        callbackScope: this,
-        loop: true,
-      });
-      if (this.scene.number > 1)
-        this.generateEvent3 = this.scene.time.addEvent({
-          delay: 3000,
+        // For all other scenes, start with difficulty progression
+        this.difficultyLevel = 1;
+
+        // Increase difficulty over time
+        this.scene.time.addEvent({
+            delay: 20000, // Increase difficulty every 20 seconds
+            callback: () => this.increaseDifficulty(),
+            callbackScope: this,
+            loop: true,
+        });
+
+        // Start spawning simple enemies
+        this.startEnemyGeneration();
+    }
+}
+
+startEnemyGeneration() {
+  // Generate basic foes
+  this.generateEvent1 = this.scene.time.addEvent({
+      delay: 7000,
+      callback: () => this.orderedWave(),
+      callbackScope: this,
+      loop: true,
+  });
+
+  this.generateEvent2 = this.scene.time.addEvent({
+      delay: 15000,
+      callback: () => this.wave(),
+      callbackScope: this,
+      loop: true,
+  });
+
+  // More enemies will be added as the difficulty increases
+}
+
+increaseDifficulty() {
+  this.difficultyLevel++;
+
+  // As difficulty increases, add more complex enemies
+  if (this.difficultyLevel === 2) {
+      // Start generating tanks
+      this.generateEvent3 = this.scene.time.addEvent({
+          delay: 10000,
           callback: () => this.tank(),
           callbackScope: this,
           loop: true,
-        });
-      if (this.scene.number > 2)
-        this.generateEvent4 = this.scene.time.addEvent({
-          delay: 5000,
+      });
+  } else if (this.difficultyLevel === 3) {
+      // Start generating sliders
+      this.generateEvent4 = this.scene.time.addEvent({
+          delay: 12000,
           callback: () => this.slider(),
           callbackScope: this,
           loop: true,
-        });
-    }
+      });
+  } else if (this.difficultyLevel === 4) {
+      // Start generating teleporter foes
+      this.generateEvent5 = this.scene.time.addEvent({
+          delay: 12000,
+          callback: () => this.teleporterFoe(),
+          callbackScope: this,
+          loop: true,
+      });
+  } else if (this.difficultyLevel === 5) { // Fixed to difficulty level 5
+      // Start generating exploder foes
+      this.generateEvent6 = this.scene.time.addEvent({
+          delay: 15000,
+          callback: () => this.exploderFoe(),
+          callbackScope: this,
+          loop: true,
+      });
   }
+
+  // Optionally, you can also decrease the delay to make spawning faster
+  if (this.difficultyLevel > 5) {
+      this.generateEvent1.delay = Math.max(3000, this.generateEvent1.delay - 1000); // Decrease delay but don't go below 3000ms
+      this.generateEvent2.delay = Math.max(5000, this.generateEvent2.delay - 1000);
+      if (this.generateEvent3) this.generateEvent3.delay = Math.max(7000, this.generateEvent3.delay - 1000);
+      if (this.generateEvent4) this.generateEvent4.delay = Math.max(9000, this.generateEvent4.delay - 1000);
+      if (this.generateEvent5) this.generateEvent5.delay = Math.max(9000, this.generateEvent5.delay - 1000); // Adjust spawn rate for teleporter foes
+      if (this.generateEvent6) this.generateEvent6.delay = Math.max(10000, this.generateEvent6.delay - 1000); // Adjust spawn rate for exploder foes
+  }
+}
+
 
   /*
   This is the function that generates the boss.
@@ -164,7 +238,7 @@ export default class FoeGenerator {
   */
   tank() {
     this.scene.foeGroup.add(
-      new Foe(this.scene, Phaser.Math.Between(100, 600), -100, "foe2", 0, 620)
+      new Foe(this.scene, Phaser.Math.Between(40, 320), -50, "foe2", 0, 620)
     );
   }
 
@@ -196,6 +270,85 @@ export default class FoeGenerator {
     });
     this.scene.foeGroup.add(foe);
   }
+
+
+
+  // TeleporterFoe - Teleports randomly around the screen
+teleporterFoe() {
+  const x = Phaser.Math.Between(50, this.scene.width - 50);
+  const foe = new Foe(this.scene, x, -50, "foe3", 0, 200); // Replace "foe6" with your actual texture key
+
+  // Set up teleporting behavior
+  this.scene.time.addEvent({
+      delay: 2000, // Teleport every 2 seconds
+      callback: () => {
+          if (foe.active) {
+              // Teleport to a random position on the screen
+              foe.setPosition(
+                  Phaser.Math.Between(50, this.scene.width - 50),
+                  Phaser.Math.Between(50, this.scene.height - 50)
+              );
+
+              // Optional: Add a flash effect to indicate teleportation
+              this.scene.tweens.add({
+                  targets: foe,
+                  alpha: { from: 0.3, to: 1 },
+                  duration: 200,
+                  yoyo: true,
+              });
+          }
+      },
+      callbackScope: this,
+      loop: true
+  });
+
+  this.scene.foeGroup.add(foe);
+}
+
+
+
+// ExploderFoe - Moves toward the player and explodes into smaller projectiles
+createExplosion(x, y) {
+  // Create multiple foe shots radiating out from the explosion
+  for (let i = 0; i < 6; i++) { // 6 shots at 60-degree intervals
+      const angle = Phaser.Math.DegToRad(60 * i); // Calculate angle for each shot
+      const speed = 200; // Speed of the shots
+      const velocityX = Math.cos(angle) * speed;
+      const velocityY = Math.sin(angle) * speed;
+
+      // Create a new FoeShot at the explosion center
+      const shot = new FoeShot(this.scene, x, y, 'foe', 'exploder', velocityX, velocityY);
+
+      // Add the shot to the foeShotsGroup
+      this.scene.foeShotsGroup.add(shot);
+
+      // Set velocity directly on the shot's physics body to move it
+      shot.body.setVelocity(velocityX, velocityY);
+
+      // Destroy the shot after a certain time to avoid memory leaks
+      this.scene.time.delayedCall(3000, () => {
+          shot.destroy();
+      });
+  }
+}
+
+
+exploderFoe() {
+  const x = Phaser.Math.Between(50, this.scene.width - 50);
+  const foe = new Foe(this.scene, x, -50, "foe4", 0, 300); // Replace "foe4" with your actual texture key
+
+  // Move toward the player
+  this.scene.physics.moveToObject(foe, this.scene.player, 50);
+
+  // When destroyed, explode into smaller projectiles
+  foe.on('destroy', () => {
+      this.createExplosion(foe.x, foe.y);
+  });
+
+  this.scene.foeGroup.add(foe);
+}
+
+
 
   /*
   This function adds a foe to the scene, in a random position.
