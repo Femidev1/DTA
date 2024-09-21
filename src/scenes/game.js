@@ -3,6 +3,7 @@ import Player from "../gameobjects/player";
 import PowerUp from "../gameobjects/powerup";
 import SceneEffect from "../gameobjects/scene_effect";
 
+
 export default class Game extends Phaser.Scene {
   constructor() {
     super({ key: "game" });
@@ -11,6 +12,8 @@ export default class Game extends Phaser.Scene {
     this.scoreText = null;
     this.collisionCount = 0;  // Initialize collision count
     this.maxLives = 5;    
+
+    this.powerUpActive = false;  
 
   }
 
@@ -47,8 +50,8 @@ export default class Game extends Phaser.Scene {
     this.addColliders();
     //this.addlives();
     this.addLivesDisplay(); 
-
     this.updateLivesDisplay();
+    this.scheduleNextPowerUp();
   }
   
 
@@ -67,15 +70,6 @@ export default class Game extends Phaser.Scene {
     const livesLeft = this.maxLives - this.collisionCount;
     this.livesText.setText(`LIVES: ${livesLeft}`);
     console.log(`Lives left: ${livesLeft}`);
-  }
-
-  /*
-    This is the method that will be called from the foe generator when a wave is destroyed. We create a new power up and we add it to the power-up group.
-    */
-  spawnShake() {
-    const { x, y } = this.lastDestroyedWaveFoe;
-    this.shake = new PowerUp(this, x, y);
-    this.powerUps.add(this.shake);
   }
 
   /*
@@ -103,6 +97,71 @@ export default class Game extends Phaser.Scene {
       .setScrollFactor(0); */
   }
 
+  // Modify destroyWaveFoe to store positions of destroyed foes
+ destroyWaveFoe(shot, foe) {
+  this.lastDestroyedWaveFoe = { x: foe.x, y: foe.y };
+  this.destroyFoe(shot, foe);
+}
+
+  spawnShake() {
+    const { x, y } = this.lastDestroyedWaveFoe;
+    this.shake = new PowerUp(this, x, y);
+    this.powerUps.add(this.shake);
+  }
+
+
+
+  // Function to randomly spawn a power-up in the game
+  spawnRandomPowerUp() {
+    if (this.isGameOver || this.powerUpActive) return;
+
+    this.powerUpActive = true;  // Mark the power-up as active
+
+    const directions = ['leftToRight', 'rightToLeft'];
+    const chosenDirection = Phaser.Utils.Array.GetRandom(directions);
+    const spawnY = Phaser.Math.Between(50, this.height - 50);
+
+    let spawnX, targetX;
+    
+    if (chosenDirection === 'leftToRight') {
+      spawnX = -50;
+      targetX = this.width + 50;
+    } else {
+      spawnX = this.width + 50;
+      targetX = -50;
+    }
+
+    this.powerUp = new PowerUp(this, spawnX, spawnY);
+    this.powerUps.add(this.powerUp);
+
+    // Move the power-up across the screen
+    this.tweens.add({
+      targets: this.powerUp,
+      x: targetX,
+      duration: Phaser.Math.Between(4000, 6000),
+      ease: 'Linear',
+      onComplete: () => {
+        if (this.powerUp.active) {
+          this.powerUp.destroy();  // Destroy if not collected
+          this.powerUpActive = false;  // Mark power-up as inactive
+          this.scheduleNextPowerUp();  // Schedule the next power-up
+        }
+      }
+    });
+
+    // Collision detection with player
+    this.physics.add.collider(this.players, this.powerUp, () => {
+      this.pickPowerUp(this.player, this.powerUp);
+    }, null, this);
+  }
+
+
+// Function to call the spawnRandomPowerUp after a delay
+scheduleNextPowerUp() {
+  this.time.delayedCall(Phaser.Math.Between(12000, 20000), () => {
+    this.spawnRandomPowerUp();
+  });
+}
   /*
     This adds the players to the scene. We create a group of players but in this particular implementation, we just add one player.
     */
@@ -117,6 +176,7 @@ export default class Game extends Phaser.Scene {
       this.player = new Player(this, spawnX, spawnY);
       this.players.add(this.player);
   }
+  
 
   addLivesDisplay() {
     this.livesText = this.add
@@ -146,6 +206,10 @@ export default class Game extends Phaser.Scene {
     this.foeShots = this.add.group();
     this.foes = new FoeGenerator(this);
     this.foeShotsGroup = this.physics.add.group();
+
+    this.foeGroup.setDepth(1);
+    this.foeWaveGroup.setDepth(1);
+    this.foeShotsGroup.setDepth(1);
   }
 
   addPowerUps() {
@@ -260,14 +324,6 @@ export default class Game extends Phaser.Scene {
   }
 
   /*
-    This is called when we destroy a foe that is part of a wave.
-    */
-  destroyWaveFoe(shot, foe) {
-    this.lastDestroyedWaveFoe = { x: foe.x, y: foe.y };
-    this.destroyFoe(shot, foe);
-  }
-
-  /*
   This is the callback we call when a shot hits a foe. We destroy the shot and we decrease the lives of the foe. If the foe has no more lives, we destroy it and we create an explosion. We also add the points to the score of the player who shoots the foe.
     */
   destroyFoe(shot, foe) {
@@ -322,9 +378,10 @@ export default class Game extends Phaser.Scene {
       this.player.blinking = true;
       player.dead();
   
-      // Add delay before transitioning to the next scene
-      this.time.delayedCall(5000, () => this.finishScene(), null, this);
-  
+      this.time.delayedCall(500, () => {
+        this.gameOver();  // Call gameOver after a 2-second delay (2000 ms)
+      });
+
       return;
   }
 
@@ -333,7 +390,7 @@ export default class Game extends Phaser.Scene {
     this.playAudio("explosion");
     shot.shadow.destroy();
     shot.destroy();
-    this.time.delayedCall(1000, () => this.respawnPlayer(), null, this);
+    this.time.delayedCall(500, () => this.respawnPlayer(), null, this);
   }
 
   dead() {
@@ -356,6 +413,48 @@ export default class Game extends Phaser.Scene {
     super.destroy();
   }
 
+  gameOver() {
+    // Create a semi-transparent black overlay
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+  
+    // Black overlay with 40% opacity
+    const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.4)
+    .setDepth(20);
+    
+
+    // "Game Over" text in red using bitmap font
+    const gameOverText = this.add.bitmapText(width / 2, height / 2 - 50, 'wendy', 'GAME OVER', 60);
+    gameOverText.setTint(0xff0000); // Red color
+    gameOverText.setOrigin(0.5, 0.5); // Center the text
+    gameOverText.setDepth(22);
+  
+    // Instructions text to restart the game
+    const restartText = this.add.bitmapText(width / 2, height / 2 + 50, 'wendy', 'Tap to Restart', 30);
+    restartText.setOrigin(0.5, 0.5); // Center the text
+    restartText.setDepth(23);
+
+    // Ensure input is enabled (especially after pausing)
+    this.input.enabled = true;
+  
+      // Delay to show the Game Over screen before allowing tap
+  this.time.delayedCall(500, () => {
+    // Enable pointerdown event after the delay
+    overlay.setInteractive(); // Ensure the overlay is interactive
+
+    overlay.once('pointerdown', () => {
+      console.log('Going to home screen');  // Debugging check
+
+       // Reset collision count (lives) when transitioning back
+       this.collisionCount = 0;
+       this.updateLivesDisplay();  // Reset lives on display
+
+      // Transition to the bootloader (or home) scene
+      this.scene.start('bootloader');  // Replace 'bootloader' with the key for your home screen scene
+    });
+  });
+
+  }
   /*
     This one is called when a player crashes with a foe. Unless the player is blinking (because it just started), we destroy the player, and the foe and also at the end we respawn the player.
     */
@@ -370,10 +469,10 @@ export default class Game extends Phaser.Scene {
         this.playAudio("explosion");
         this.player.blinking = true;
         player.dead();
-    
-        // Add delay before transitioning to the next scene
-        this.time.delayedCall(5000, () => this.finishScene(), null, this);
-    
+          // Add a delay before transitioning to the game over screen
+        this.time.delayedCall(2000, () => {
+          this.gameOver();  // Call gameOver after a 2-second delay (2000 ms)
+        });
         return;
     }
       player.dead();
@@ -389,27 +488,26 @@ export default class Game extends Phaser.Scene {
   /*
     This is the callback when the player picks a powerup. We update the power-up of the player and we destroy the power-up. We also create a tween to make the player blink.
     */
+    // Modify the pickPowerUp method to ensure the spawning continues
     pickPowerUp(player, powerUp) {
       this.playAudio("stageclear1");
       this.updatePowerUp(player, powerUp);
   
-      // Tween for the player (optional visual effect)
       this.tweens.add({
-          targets: player,
-          duration: 200,
-          alpha: { from: 0.5, to: 1 },
-          scale: { from: 1.2, to: 0.75 }, // Optional scaling effect for the player
-          repeat: 3,
+        targets: player,
+        duration: 200,
+        alpha: { from: 0.5, to: 1 },
+        scale: { from: 1.2, to: 0.75 },
+        repeat: 3,
       });
   
-      // Destroy the power-up's shadow
-      if (powerUp.shadow) {
-          powerUp.shadow.destroy();
-      }
-  
-      // Destroy the power-up
+      if (powerUp.shadow) powerUp.shadow.destroy();
       powerUp.destroy();
-  }
+      this.powerUpActive = false;
+  
+      // Schedule the next power-up spawn after the player collects one
+      this.scheduleNextPowerUp();
+    }
   
 
   /*
@@ -453,6 +551,8 @@ export default class Game extends Phaser.Scene {
     };
   }
 
+
+
   playAudio(key) {
     this.audios[key].play();
   }
@@ -469,7 +569,7 @@ export default class Game extends Phaser.Scene {
   /*
     When the player finishes the stage, we destroy all the elements and we start the transition to the next scene.
     */
-    endScene() {
+ /*   endScene() {
       this.foeWaveGroup.children.entries.forEach((foe) => {
           if (foe.shadow) {
               foe.shadow.destroy();
@@ -498,13 +598,13 @@ export default class Game extends Phaser.Scene {
           null,
           this
       );
-  }
+  } */
   
 
   /*
     This is the callback for the end of the scene. We stop all the audio, we stop the scene and we start the transition to the next scene.
     */
-  finishScene() {
+ /* finishScene() {
     this.game.sound.stopAll();
     this.scene.stop("game");
     const scene = this.number < 5 ? "game" : "outro";
@@ -513,7 +613,7 @@ export default class Game extends Phaser.Scene {
       name: "STAGE",
       number: this.number + 1,
     });
-  }
+  } */
 
   /*
     The power-up looks the same but the effect is different. We keep increasing its value so we can apply the effect to the player. In this game, the power-up applies another shooting pattern.

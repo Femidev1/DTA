@@ -205,6 +205,7 @@ increaseDifficulty() {
     const x = Phaser.Math.Between(24, this.scene.width - 200);
     const y = Phaser.Math.Between(-24, 0);
     const minus = Phaser.Math.Between(-1, 1) > 0 ? 1 : -1;
+    
 
     Array(difficulty)
       .fill()
@@ -420,7 +421,7 @@ exploderFoe() {
 
       if (this.activeWave && this.checkIfWaveDestroyed()) {
         this.activeWave = false;
-        this.scene.spawnShake();
+       // this.scene.spawnShake();
         this.path.destroy();
       }
     }

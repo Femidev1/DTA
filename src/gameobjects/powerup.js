@@ -19,8 +19,8 @@ class PowerUp extends Phaser.GameObjects.Sprite {
     this.body.setCircle(19 * scale); 
     this.body.setOffset(12 * scale, 12 * scale);
     this.body.setAllowGravity(false);
-    this.body.setCollideWorldBounds(true);
-    this.body.onWorldBounds = true;
+    this.body.setCollideWorldBounds(false);
+    this.body.onWorldBounds = false;
     this.body.setBounce(1);
     
     // Set a random velocity for bouncing
@@ -29,8 +29,8 @@ class PowerUp extends Phaser.GameObjects.Sprite {
     // Set shadow physics
     this.scene.physics.add.existing(this.shadow);
     this.shadow.body.setAllowGravity(false);
-    this.shadow.body.setCollideWorldBounds(true);
-    this.shadow.body.onWorldBounds = true;
+    this.shadow.body.setCollideWorldBounds(false);
+    this.shadow.body.onWorldBounds = false;
     this.shadow.body.setBounce(1);
     this.shadow.body.setVelocity(this.body.velocity.x, this.body.velocity.y); // Match initial velocity
 

@@ -23,6 +23,7 @@ class Foe extends Phaser.GameObjects.Sprite {
     this.lives = TYPES[name].lives;
     this.id = Math.random();
     this.setScale(scale);
+    this.setDepth(5);
 
     // Constrain the spawn position within the screen bounds
     this.x = Phaser.Math.Clamp(x, 0, gameWidth);
@@ -31,6 +32,9 @@ class Foe extends Phaser.GameObjects.Sprite {
     if (this.name !== "foe2") {
       this.spawnShadow(this.x, this.y, scale);
     }
+
+      // Set depth for foe
+      this.setDepth(5); // Adjust depth value as needed
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.body.setAllowGravity(false);
@@ -104,10 +108,14 @@ class Foe extends Phaser.GameObjects.Sprite {
     This function is called from the foe generation. It updates the foe position, checks if it's out of bounds and also updates its shadow.
     */
   update() {
-    if (this.y > this.scene.height + 64) {
-      if (this.name !== "foe2") this.shadow.destroy();
-      this.destroy();
-    }
+     // Use the correct way to get the game's height
+  const gameHeight = this.scene.sys.game.config.height;
+
+  // Destroy the foe if it moves beyond the bottom of the screen
+  if (this.y > gameHeight + 64) {
+    if (this.name !== "foe2") this.shadow.destroy();
+    this.destroy();
+  }
 
     if (this.name === "guinxu" && Phaser.Math.Between(1, 6) > 5) {
       this.guinxuShot();
