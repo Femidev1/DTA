@@ -9,6 +9,9 @@ export default class Game extends Phaser.Scene {
     this.player = null;
     this.score = 0;
     this.scoreText = null;
+    this.collisionCount = 0;  // Initialize collision count
+    this.maxLives = 5;    
+
   }
 
   /*
@@ -42,7 +45,12 @@ export default class Game extends Phaser.Scene {
     this.addShots();
     this.loadAudios();
     this.addColliders();
+    //this.addlives();
+    this.addLivesDisplay(); 
+
+    this.updateLivesDisplay();
   }
+  
 
   /*
     This is how we create an infinite background. We create a tileSprite with the size of the screen and we set the origin to 0,0. Then we set the scroll factor to 0,1 so it will scroll only in the Y axis.
@@ -53,8 +61,13 @@ export default class Game extends Phaser.Scene {
           .setOrigin(0.5, 0.5)
           .setScrollFactor(0, 1);
   }
-  
-  
+
+  updateLivesDisplay() {
+    // Update the lives text on the screen based on remaining lives
+    const livesLeft = this.maxLives - this.collisionCount;
+    this.livesText.setText(`LIVES: ${livesLeft}`);
+    console.log(`Lives left: ${livesLeft}`);
+  }
 
   /*
     This is the method that will be called from the foe generator when a wave is destroyed. We create a new power up and we add it to the power-up group.
@@ -103,6 +116,18 @@ export default class Game extends Phaser.Scene {
   
       this.player = new Player(this, spawnX, spawnY);
       this.players.add(this.player);
+  }
+
+  addLivesDisplay() {
+    this.livesText = this.add
+      .bitmapText(
+        10, 50,  // Position on the screen (X, Y)
+        "wendy", // Font
+        `LIVES: ${this.maxLives}`,  // Initial text showing the max lives
+        40       // Font size
+      )
+      .setOrigin(0, 0)
+      .setScrollFactor(0); // This ensures the text stays fixed on the screen
   }
   
   
@@ -288,32 +313,78 @@ export default class Game extends Phaser.Scene {
   hitPlayer(player, shot) {
     if (player.blinking) return;
 
-    // Save the player's current position
-    this.lastPlayerX = player.x;
-    this.lastPlayerY = player.y;
+    this.collisionCount++;
+    this.updateLivesDisplay();  // Display lives after crash
+    if (this.collisionCount >= this.maxLives) {
 
-    console.log('Player hit at:', this.lastPlayerX, this.lastPlayerY); // Debugging
+      // Play explosion audio and handle player's death
+      this.playAudio("explosion");
+      this.player.blinking = true;
+      player.dead();
+  
+      // Add delay before transitioning to the next scene
+      this.time.delayedCall(5000, () => this.finishScene(), null, this);
+  
+      return;
+  }
 
-    // Remove player and handle hit
     this.players.remove(this.player);
     player.dead();
     this.playAudio("explosion");
     shot.shadow.destroy();
     shot.destroy();
     this.time.delayedCall(1000, () => this.respawnPlayer(), null, this);
-}
+  }
 
+  dead() {
+    const explosion = this.scene.add
+      .circle(this.x, this.y, 10)
+      .setStrokeStyle(40, 0xffffff);
+    this.scene.tweens.add({
+      targets: explosion,
+      radius: { from: 10, to: 512 },
+      alpha: { from: 1, to: 0.3 },
+      duration: 300,
+      onComplete: () => {
+        explosion.destroy();
+      },
+    });
+    this.scene.cameras.main.shake(500);
+    this.death = true;
+    this.shadow.destroy();
+    new Explosion(this.scene, this.x, this.y, 40);
+    super.destroy();
+  }
 
   /*
     This one is called when a player crashes with a foe. Unless the player is blinking (because it just started), we destroy the player, and the foe and also at the end we respawn the player.
     */
-  crashFoe(player, foe) {
-    if (player.blinking) return;
-    player.dead();
-    this.playAudio("explosion");
-    foe.dead();
-    this.time.delayedCall(1000, () => this.respawnPlayer(), null, this);
-  }
+    crashFoe(player, foe) {
+      if (player.blinking) return;
+  
+      this.collisionCount++;
+      this.updateLivesDisplay();  // Display lives after crash
+      if (this.collisionCount >= this.maxLives) {
+
+        // Play explosion audio and handle player's death
+        this.playAudio("explosion");
+        this.player.blinking = true;
+        player.dead();
+    
+        // Add delay before transitioning to the next scene
+        this.time.delayedCall(5000, () => this.finishScene(), null, this);
+    
+        return;
+    }
+      player.dead();
+      this.playAudio("explosion");
+      foe.dead();
+  
+      this.time.delayedCall(1000, () => {
+        this.respawnPlayer();
+        player.blinking = false;
+      }, null, this);
+    }
 
   /*
     This is the callback when the player picks a powerup. We update the power-up of the player and we destroy the power-up. We also create a tween to make the player blink.
@@ -420,7 +491,7 @@ export default class Game extends Phaser.Scene {
           }
       });
       this.time.delayedCall(
-          2000,
+          1000,
           () => {
               this.finishScene();
           },
