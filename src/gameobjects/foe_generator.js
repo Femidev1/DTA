@@ -97,14 +97,6 @@ increaseDifficulty() {
           callbackScope: this,
           loop: true,
       });
-  } else if (this.difficultyLevel === 5) { // Fixed to difficulty level 5
-      // Start generating exploder foes
-      this.generateEvent6 = this.scene.time.addEvent({
-          delay: 15000,
-          callback: () => this.exploderFoe(),
-          callbackScope: this,
-          loop: true,
-      });
   }
 
   // Optionally, you can also decrease the delay to make spawning faster
@@ -305,50 +297,6 @@ teleporterFoe() {
 
   this.scene.foeGroup.add(foe);
 }
-
-
-
-// ExploderFoe - Moves toward the player and explodes into smaller projectiles
-createExplosion(x, y) {
-  // Create multiple foe shots radiating out from the explosion
-  for (let i = 0; i < 6; i++) { // 6 shots at 60-degree intervals
-      const angle = Phaser.Math.DegToRad(60 * i); // Calculate angle for each shot
-      const speed = 200; // Speed of the shots
-      const velocityX = Math.cos(angle) * speed;
-      const velocityY = Math.sin(angle) * speed;
-
-      // Create a new FoeShot at the explosion center
-      const shot = new FoeShot(this.scene, x, y, 'foe', 'exploder', velocityX, velocityY);
-
-      // Add the shot to the foeShotsGroup
-      this.scene.foeShotsGroup.add(shot);
-
-      // Set velocity directly on the shot's physics body to move it
-      shot.body.setVelocity(velocityX, velocityY);
-
-      // Destroy the shot after a certain time to avoid memory leaks
-      this.scene.time.delayedCall(3000, () => {
-          shot.destroy();
-      });
-  }
-}
-
-
-exploderFoe() {
-  const x = Phaser.Math.Between(50, this.scene.width - 50);
-  const foe = new Foe(this.scene, x, -50, "foe4", 0, 300); // Replace "foe4" with your actual texture key
-
-  // Move toward the player
-  this.scene.physics.moveToObject(foe, this.scene.player, 50);
-
-  // When destroyed, explode into smaller projectiles
-  foe.on('destroy', () => {
-      this.createExplosion(foe.x, foe.y);
-  });
-
-  this.scene.foeGroup.add(foe);
-}
-
 
 
   /*
