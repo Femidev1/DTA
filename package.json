@@ -1,27 +1,27 @@
 {
-  "name": "starshake",
-  "productName": "Starshake",
+  "name": "DTA",
+  "productName": "Dta",
   "main": "index.html",
   "type": "module",
   "window": {
-    "title": "Generic - by Pello",
-    "width": 800,
+    "title": "Vader",
+    "width": 360,
     "height": 600,
     "fullscreen": false,
     "toolbar": false,
     "icon": "customIcon.png"
   },
   "version": "0.0.1",
-  "description": "Generic game for jam",
+  "description": "Moula",
   "repository": {
-    "url": "https://github.com/phaserjs/phaser-by-example"
+    "url": "empty"
   },
   "license": "MIT",
   "keywords": [
-    "phaser",
-    "games",
-    "book",
-    "pello"
+    "darkside",
+    "Moula",
+    "cash",
+    "funds"
   ],
   "scripts": {
     "dev": "vite --config vite/config.dev.mjs",
@@ -33,5 +33,10 @@
   },
   "dependencies": {
     "phaser": "^3.85.1"
-  }
+  },
+  "author": "",
+  "bugs": {
+    "url": "none"
+  },
+  "homepage": "none"
 }
