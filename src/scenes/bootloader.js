@@ -125,8 +125,11 @@ export default class Bootloader extends Phaser.Scene {
       frameWidth: 64,
       frameHeight: 64,
     });
+    this.load.spritesheet("playgame", "assets/images/play.png", {
+      frameWidth: 200,
+      frameHeight: 44,
+    })
   }
-
   /*
     Set the initial values of the registry. The game was designed to be played by two players, but it can be played by one.
     */

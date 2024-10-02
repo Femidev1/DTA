@@ -414,47 +414,49 @@ scheduleNextPowerUp() {
   }
 
   gameOver() {
+    // Add current game score to total score in the registry
+    const currentScore = this.registry.get("score_player1");
+    const totalScore = this.registry.get("totalScore") || 0; // Default to 0 if undefined
+
+    // Accumulate the current score into the total score
+    this.registry.set("totalScore", totalScore + currentScore);
+
     // Create a semi-transparent black overlay
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
-  
-    // Black overlay with 40% opacity
     const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.4)
-    .setDepth(20);
+      .setDepth(20);
     
-
     // "Game Over" text in red using bitmap font
-    const gameOverText = this.add.bitmapText(width / 2, height / 2 - 50, 'wendy', 'GAME OVER', 60);
-    gameOverText.setTint(0xff0000); // Red color
-    gameOverText.setOrigin(0.5, 0.5); // Center the text
-    gameOverText.setDepth(22);
-  
+    const gameOverText = this.add.bitmapText(width / 2, height / 2 - 50, 'wendy', 'GAME OVER', 60)
+      .setTint(0xff0000) // Red color
+      .setOrigin(0.5, 0.5) // Center the text
+      .setDepth(22);
+
     // Instructions text to restart the game
-    const restartText = this.add.bitmapText(width / 2, height / 2 + 50, 'wendy', 'Tap to Restart', 30);
-    restartText.setOrigin(0.5, 0.5); // Center the text
-    restartText.setDepth(23);
+    const restartText = this.add.bitmapText(width / 2, height / 2 + 50, 'wendy', 'Tap to Restart', 30)
+      .setOrigin(0.5, 0.5) // Center the text
+      .setDepth(23);
 
     // Ensure input is enabled (especially after pausing)
     this.input.enabled = true;
   
-      // Delay to show the Game Over screen before allowing tap
-  this.time.delayedCall(500, () => {
-    // Enable pointerdown event after the delay
-    overlay.setInteractive(); // Ensure the overlay is interactive
+    // Delay to show the Game Over screen before allowing tap
+    this.time.delayedCall(500, () => {
+        overlay.setInteractive(); // Ensure the overlay is interactive
 
-    overlay.once('pointerdown', () => {
-      console.log('Going to home screen');  // Debugging check
+        overlay.once('pointerdown', () => {
+            console.log('Going to home screen');
 
-       // Reset collision count (lives) when transitioning back
-       this.collisionCount = 0;
-       this.updateLivesDisplay();  // Reset lives on display
+            // Reset collision count (lives) when transitioning back
+            this.collisionCount = 0;
+            this.updateLivesDisplay(); // Reset lives on display
 
-      // Transition to the bootloader (or home) scene
-      this.scene.start('bootloader');  // Replace 'bootloader' with the key for your home screen scene
+            // Transition to the splash screen (or home screen)
+            this.scene.start('splash'); // Transition to 'splash' instead of 'bootloader'
+        });
     });
-  });
-
-  }
+}
   /*
     This one is called when a player crashes with a foe. Unless the player is blinking (because it just started), we destroy the player, and the foe and also at the end we respawn the player.
     */
