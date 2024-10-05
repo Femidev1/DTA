@@ -12,8 +12,8 @@ export default class Splash extends Phaser.Scene {
       frameWidth: 488,
       frameHeight: 88
     });
-    this.load.image("mineButton", "assets/images/mine.png");
-    this.load.image("earnButton", "assets/images/earn.png");
+  //  this.load.image("mineButton", "assets/images/mine.png");
+   // this.load.image("earnButton", "assets/images/earn.png");
   }
 
   create() {
@@ -101,13 +101,13 @@ export default class Splash extends Phaser.Scene {
 
   // Splash page buttons
   createButtons(){
-    const mineButton = this.add.image(this.center_width, 440, 'mineButton')
+  /*  const mineButton = this.add.image(this.center_width, 440, 'mineButton')
     .setInteractive()
     .setScale(0.5);
 
   mineButton.on('pointerdown', () => {
     console.log("Mine action triggered!");
-  });
+  }); */
 
     const playButton = this.add.sprite(this.center_width, 500, 'playButton', 0) 
       .setInteractive()
@@ -118,13 +118,13 @@ export default class Splash extends Phaser.Scene {
       this.transitionToChange();
     });
 
-    const earnButton = this.add.image(this.center_width, 560, 'earnButton')
+   /* const earnButton = this.add.image(this.center_width, 560, 'earnButton')
       .setInteractive()
       .setScale(0.5);
 
     earnButton.on('pointerdown', () => {
       console.log("Earn action triggered!");
-    });
+    });*/
   }
 
   update() {
@@ -214,7 +214,7 @@ export default class Splash extends Phaser.Scene {
 
     // Display the total score on the splash screen
     this.add
-      .bitmapText(this.center_width, 44, "wendy", `Score: ${totalScore}`, 40)
+      .bitmapText(this.center_width, 44, "wendy", ` ${totalScore}`, 48)
       .setOrigin(0.5)
       .setDropShadow(3, 4, 0x222222, 0.7);
   }
@@ -222,7 +222,7 @@ export default class Splash extends Phaser.Scene {
   /*
     Here we add the instructions to the scene.
     */
-  showInstructions() {
+  /*  showInstructions() {
     this.instructionsText = this.add
       .bitmapText(this.center_width, 600, "wendy", "Hold to destroy", 40)
       .setOrigin(0.5)
@@ -235,7 +235,7 @@ export default class Splash extends Phaser.Scene {
       repeat: -1,
       yoyo: true, 
     }); 
-    /* this.add
+   this.add
       .bitmapText(this.center_width, 500, "wendy", "SPACE to shoot", 40)
       .setOrigin(0.5)
       .setDropShadow(3, 4, 0x222222, 0.7);
@@ -258,6 +258,6 @@ export default class Splash extends Phaser.Scene {
     this.space = this.add
       .bitmapText(this.center_width, 680, "wendy", "Press SPACE to start", 60)
       .setOrigin(0.5)
-      .setDropShadow(3, 4, 0x222222, 0.7); */
-  }
+      .setDropShadow(3, 4, 0x222222, 0.7); 
+  } */
 }
